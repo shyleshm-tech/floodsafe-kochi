@@ -13,6 +13,7 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 
 <style>
+
 *{
 box-sizing:border-box;
 }
@@ -50,6 +51,7 @@ background:white;
 padding:16px;
 border-radius:14px;
 box-shadow:0 3px 12px #0002;
+
 display:grid;
 grid-template-columns:1fr 1.4fr 1fr;
 gap:12px;
@@ -78,6 +80,15 @@ border:0;
 color:white;
 font-weight:bold;
 cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+button:disabled{
+opacity:.6;
+cursor:not-allowed;
 }
 
 #selectButton{
@@ -112,63 +123,58 @@ border-radius:9px;
 line-height:1.5;
 }
 
-.results{
+
+/* ROUTE CARDS */
+
+#results{
 display:none;
 margin-top:16px;
-background:white;
-padding:18px;
-border-radius:14px;
-box-shadow:0 2px 8px #0002;
 }
 
-.results h2{
-margin-top:0;
-color:#063b5c;
-}
-
-.routeGrid{
+.route-grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:12px;
 }
 
-.route{
+.route-card{
+background:white;
 padding:16px;
-border-radius:10px;
-background:#f5f7f8;
+border-radius:12px;
+box-shadow:0 2px 8px #0002;
 border-top:6px solid #777;
 }
 
-.route.safe{
+.route-card.safe{
 border-top-color:#08a568;
 }
 
-.route.medium{
+.route-card.alt{
 border-top-color:#f39c12;
 }
 
-.route.danger{
+.route-card.danger{
 border-top-color:#d64545;
 }
 
-.route h3{
+.route-card h3{
 margin-top:0;
 }
 
-.route p{
+.route-card p{
 margin:8px 0;
 }
 
 .big{
-font-size:22px;
+font-size:21px;
 font-weight:bold;
 }
 
 .decision{
 margin-top:15px;
-padding:16px;
 background:#e7f8ef;
 border-left:6px solid #08a568;
+padding:16px;
 border-radius:8px;
 }
 
@@ -181,13 +187,33 @@ border-radius:8px;
 line-height:1.5;
 }
 
-@media(max-width:800px){
+
+/* LEGEND */
+
+.map-legend{
+background:white;
+padding:10px;
+border-radius:8px;
+box-shadow:0 2px 8px #0003;
+line-height:1.8;
+}
+
+.legend-line{
+display:inline-block;
+width:25px;
+height:5px;
+margin-right:6px;
+vertical-align:middle;
+}
+
+
+@media(max-width:850px){
 
 .controls{
 grid-template-columns:1fr;
 }
 
-.routeGrid{
+.route-grid{
 grid-template-columns:1fr;
 }
 
@@ -196,19 +222,32 @@ height:450px;
 }
 
 }
+
 </style>
+
 </head>
 
 <body>
 
+
 <header>
+
 <h1>🌊 FloodSafe Kochi</h1>
-<p>Emergency Shortest & Safest Route Planning System</p>
+
+<p>
+Emergency Shortest & Safest Route Planning System
+</p>
+
 </header>
+
 
 <div class="container">
 
+
+<!-- CONTROLS -->
+
 <div class="controls">
+
 
 <div>
 
@@ -228,6 +267,7 @@ Click the button and then click the map.
 
 </div>
 
+
 <div>
 
 <label>EMERGENCY DESTINATION</label>
@@ -235,13 +275,14 @@ Click the button and then click the map.
 <input
 id="destination"
 value="Government Hospital, Ernakulam"
-placeholder="Enter destination">
+placeholder="Example: Government Hospital, Ernakulam">
 
 <button id="routeButton">
 🚑 FIND SAFEST ROUTE
 </button>
 
 </div>
+
 
 <div>
 
@@ -268,6 +309,8 @@ Severe Flood
 </div>
 
 
+<!-- MAP -->
+
 <div id="mapContainer">
 
 <div id="map"></div>
@@ -280,90 +323,123 @@ Severe Flood
 
 Click
 <strong>Select Location on Map</strong>
-to choose the emergency user's location.
+to select the emergency user's starting point.
 
 </div>
 
 </div>
 
 
-<div id="results" class="results">
+<!-- RESULTS -->
 
-<h2>🚑 Route Analysis</h2>
+<div id="results">
 
-<div class="routeGrid">
+<div class="route-grid">
 
-<div class="route safe">
 
-<h3>🟢 Safest Route</h3>
+<div
+id="card1"
+class="route-card safe">
+
+<h3 id="name1">
+🟢 Safest Route
+</h3>
 
 <p>
 Distance:
-<strong id="safeDistance">—</strong>
+<strong id="distance1">—</strong>
+</p>
+
+<p>
+Time:
+<strong id="time1">—</strong>
 </p>
 
 <p>
 Flood Risk:
-<strong id="safeRisk">—</strong>
+<strong id="risk1">—</strong>
 </p>
 
 <p>
-Risk Penalty:
-<strong id="safePenalty">—</strong>
+Flood Penalty:
+<strong id="penalty1">—</strong>
 </p>
 
 <p class="big">
-Total Cost:
-<span id="safeCost">—</span>
+Cost:
+<span id="cost1">—</span>
 </p>
 
 </div>
 
 
-<div class="route medium">
+<div
+id="card2"
+class="route-card alt">
 
-<h3>🟡 Shortest Route</h3>
+<h3 id="name2">
+🟡 Alternative Route
+</h3>
 
 <p>
 Distance:
-<strong id="shortDistance">—</strong>
+<strong id="distance2">—</strong>
+</p>
+
+<p>
+Time:
+<strong id="time2">—</strong>
 </p>
 
 <p>
 Flood Risk:
-<strong id="shortRisk">—</strong>
+<strong id="risk2">—</strong>
 </p>
 
 <p>
-Risk Penalty:
-<strong id="shortPenalty">—</strong>
+Flood Penalty:
+<strong id="penalty2">—</strong>
 </p>
 
 <p class="big">
-Total Cost:
-<span id="shortCost">—</span>
+Cost:
+<span id="cost2">—</span>
 </p>
 
 </div>
 
 
-<div class="route danger">
+<div
+id="card3"
+class="route-card danger">
 
-<h3>🔴 Flood Risk</h3>
+<h3 id="name3">
+🔴 Alternative Route
+</h3>
 
 <p>
-Flood Condition:
-<strong id="condition">—</strong>
+Distance:
+<strong id="distance3">—</strong>
 </p>
 
 <p>
-Safety Penalty:
-<strong id="dangerPenalty">—</strong>
+Time:
+<strong id="time3">—</strong>
 </p>
 
 <p>
-Decision:
-<strong id="decision">—</strong>
+Flood Risk:
+<strong id="risk3">—</strong>
+</p>
+
+<p>
+Flood Penalty:
+<strong id="penalty3">—</strong>
+</p>
+
+<p class="big">
+Cost:
+<span id="cost3">—</span>
 </p>
 
 </div>
@@ -373,7 +449,7 @@ Decision:
 
 <div class="decision">
 
-<strong>🏆 Algorithm Decision</strong>
+<strong>🏆 SAFEST ROUTE DECISION</strong>
 
 <br><br>
 
@@ -388,35 +464,42 @@ Decision:
 
 <div class="info">
 
-<strong>🎓 Project Demonstration</strong>
+<strong>🎓 How the prototype works</strong>
 
 <br><br>
 
-The system allows the emergency user to select a
-starting location on the map and enter a destination.
+The user selects a starting location on the map and
+enters an emergency destination.
 
 <br><br>
 
-The prototype compares route distance with simulated
-flood-risk penalties.
+The routing engine attempts to return multiple road
+alternatives.
 
 <br><br>
+
+For each available route, the system calculates:
+
+<br>
 
 <strong>
-Total Route Cost = Distance + Flood Risk Penalty
+Route Cost = Distance + Flood-Risk Penalty
 </strong>
 
 <br><br>
 
-The route with the lower combined cost is identified
-as the safer option.
+The route with the lowest calculated cost is highlighted
+as the proposed safest route.
 
 <br><br>
 
-⚠️ Flood information in this prototype is simulated
-for demonstration and is not live emergency data.
+⚠️ Flood-risk values in this demonstration are
+<strong>simulated</strong>. They should be replaced with
+real flood-depth, road-closure, or water-level data for
+a real emergency system.
 
 </div>
+
 
 </div>
 
@@ -428,20 +511,26 @@ src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 
 <script>
 
-/* ==========================================
-   MAP INITIALIZATION
-   This is the same stable map setup.
-========================================== */
+/* =====================================================
+   MAP
+   KEEPING THE WORKING MAP INITIALIZATION
+===================================================== */
 
 const map = L.map("map");
+
 
 L.tileLayer(
 "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
 maxZoom:19,
-attribution:"&copy; OpenStreetMap contributors"
+
+attribution:
+"&copy; OpenStreetMap contributors"
 }
 ).addTo(map);
+
+
+/* KOCHI */
 
 map.setView(
 [9.9312,76.2673],
@@ -449,24 +538,24 @@ map.setView(
 );
 
 
-/* ==========================================
+/* =====================================================
    VARIABLES
-========================================== */
+===================================================== */
 
 let userMarker = null;
 
 let destinationMarker = null;
 
-let routeLayer = null;
+let routeLayers = [];
 
 let selecting = false;
 
 let userLocation = null;
 
 
-/* ==========================================
+/* =====================================================
    ELEMENTS
-========================================== */
+===================================================== */
 
 const selectButton =
 document.getElementById("selectButton");
@@ -487,9 +576,9 @@ const status =
 document.getElementById("status");
 
 
-/* ==========================================
-   SELECT LOCATION
-========================================== */
+/* =====================================================
+   SELECT USER LOCATION
+===================================================== */
 
 selectButton.onclick = function(){
 
@@ -498,29 +587,37 @@ selecting = true;
 selectButton.innerText =
 "👆 CLICK ON MAP";
 
-status.innerHTML =
-"<strong>📍 Select user location.</strong><br>" +
+locationText.innerText =
 "Click anywhere on the Kochi map.";
 
-locationText.innerText =
-"Waiting for map click...";
+status.innerHTML =
+"<strong>📍 Select user location.</strong><br>" +
+"Click anywhere on the map.";
 
 };
 
 
-/* ==========================================
+/* =====================================================
    MAP CLICK
-========================================== */
+===================================================== */
 
-map.on("click",function(e){
+map.on(
+"click",
+function(e){
 
 if(!selecting){
+
 return;
+
 }
 
-const lat = e.latlng.lat;
 
-const lon = e.latlng.lng;
+const lat =
+e.latlng.lat;
+
+const lon =
+e.latlng.lng;
+
 
 userLocation = {
 lat:lat,
@@ -528,23 +625,31 @@ lon:lon
 };
 
 
-/* Remove previous marker */
+/* REMOVE OLD */
 
 if(userMarker){
-map.removeLayer(userMarker);
+
+map.removeLayer(
+userMarker
+);
+
 }
 
 
-/* Add user marker */
+/* ADD USER MARKER */
 
 userMarker =
-L.marker([lat,lon])
+L.marker(
+[lat,lon]
+)
 .addTo(map)
 .bindPopup(
 "<strong>📍 Emergency User</strong><br>" +
-"Latitude: " +
+
+"Lat: " +
 lat.toFixed(5) +
-"<br>Longitude: " +
+
+"<br>Lon: " +
 lon.toFixed(5)
 )
 .openPopup();
@@ -552,33 +657,196 @@ lon.toFixed(5)
 
 selecting = false;
 
+
 selectButton.innerText =
 "📍 CHANGE LOCATION";
 
+
 locationText.innerHTML =
-"✓ Location selected<br>" +
+"✓ User location selected<br>" +
+
 "Lat: " +
 lat.toFixed(5) +
+
 "<br>Lon: " +
 lon.toFixed(5);
 
 
 status.innerHTML =
-"<strong>✓ User location selected.</strong><br>" +
-"Enter destination and click " +
+"<strong>✓ Location selected.</strong><br>" +
+
+"Enter your emergency destination and click " +
+
 "<strong>Find Safest Route</strong>.";
 
 });
 
 
-/* ==========================================
-   ROUTE
-========================================== */
+/* =====================================================
+   CLEAR ROUTES
+===================================================== */
 
-routeButton.onclick = calculateRoute;
+function clearRoutes(){
+
+routeLayers.forEach(
+function(layer){
+
+map.removeLayer(
+layer
+);
+
+}
+);
+
+routeLayers = [];
+
+}
 
 
-async function calculateRoute(){
+/* =====================================================
+   FLOOD RISK
+===================================================== */
+
+/*
+This is simulated data for the demonstration.
+
+The risk is assigned differently to each route
+so that the project can demonstrate the idea of
+shortest versus safest routing.
+*/
+
+function getFloodRisk(
+routeIndex,
+condition
+){
+
+if(condition === "normal"){
+
+if(routeIndex === 0){
+
+return {
+name:"LOW",
+penalty:0
+};
+
+}
+
+if(routeIndex === 1){
+
+return {
+name:"LOW",
+penalty:1
+};
+
+}
+
+return {
+name:"MEDIUM",
+penalty:2
+};
+
+}
+
+
+if(condition === "medium"){
+
+if(routeIndex === 0){
+
+return {
+name:"HIGH",
+penalty:10
+};
+
+}
+
+if(routeIndex === 1){
+
+return {
+name:"LOW",
+penalty:2
+};
+
+}
+
+return {
+name:"MEDIUM",
+penalty:5
+};
+
+}
+
+
+/* SEVERE */
+
+if(routeIndex === 0){
+
+return {
+name:"HIGH",
+penalty:15
+};
+
+}
+
+if(routeIndex === 1){
+
+return {
+name:"MEDIUM",
+penalty:7
+};
+
+}
+
+return {
+name:"LOW",
+penalty:2
+};
+
+}
+
+
+/* =====================================================
+   DRAW ROUTE
+===================================================== */
+
+function drawRoute(
+route,
+color,
+weight,
+opacity
+){
+
+const layer =
+L.geoJSON(
+route.geometry,
+{
+style:{
+color:color,
+weight:weight,
+opacity:opacity
+}
+}
+).addTo(map);
+
+
+routeLayers.push(
+layer
+);
+
+
+return layer;
+
+}
+
+
+/* =====================================================
+   FIND SAFEST ROUTES
+===================================================== */
+
+routeButton.onclick =
+findRoutes;
+
+
+async function findRoutes(){
 
 if(!userLocation){
 
@@ -587,52 +855,62 @@ alert(
 );
 
 return;
+
 }
 
 
-const place =
+const destination =
 destinationInput.value.trim();
 
 
-if(!place){
+if(!destination){
 
 alert(
-"Please enter a destination."
+"Please enter an emergency destination."
 );
 
 return;
+
 }
 
 
 routeButton.disabled = true;
 
-status.innerText =
+
+status.innerHTML =
 "🔎 Searching for destination...";
 
 
 try{
 
 
-/* ========================================
-   FIND DESTINATION
-======================================== */
+/* =================================================
+   GEOCODING
+================================================= */
 
-const searchURL =
+const geoURL =
+
 "https://nominatim.openstreetmap.org/search" +
+
 "?format=json" +
+
 "&limit=1" +
+
 "&q=" +
+
 encodeURIComponent(
-place +
+destination +
 ", Kochi, Kerala, India"
 );
 
 
-const searchResponse =
-await fetch(searchURL);
+const geoResponse =
+await fetch(
+geoURL
+);
 
 
-if(!searchResponse.ok){
+if(!geoResponse.ok){
 
 throw new Error(
 "Destination search failed."
@@ -641,11 +919,11 @@ throw new Error(
 }
 
 
-const searchData =
-await searchResponse.json();
+const geoData =
+await geoResponse.json();
 
 
-if(searchData.length === 0){
+if(geoData.length === 0){
 
 throw new Error(
 "Destination not found."
@@ -655,44 +933,54 @@ throw new Error(
 
 
 const destLat =
-parseFloat(searchData[0].lat);
+parseFloat(
+geoData[0].lat
+);
 
 const destLon =
-parseFloat(searchData[0].lon);
+parseFloat(
+geoData[0].lon
+);
 
 
-/* ========================================
+/* =================================================
    DESTINATION MARKER
-======================================== */
+================================================= */
 
 if(destinationMarker){
 
-map.removeLayer(destinationMarker);
+map.removeLayer(
+destinationMarker
+);
 
 }
 
 
 destinationMarker =
 L.marker(
-[destLat,destLon]
+[
+destLat,
+destLon
+]
 )
 .addTo(map)
 .bindPopup(
 "<strong>🏥 Emergency Destination</strong><br>" +
-place
+destination
 )
 .openPopup();
 
 
-/* ========================================
-   ROUTE
-======================================== */
+/* =================================================
+   OSRM WITH ALTERNATIVES
+================================================= */
 
-status.innerText =
-"🚑 Calculating route...";
+status.innerHTML =
+"🚑 Finding alternative road routes...";
 
 
-const routeURL =
+const osrmURL =
+
 "https://router.project-osrm.org/route/v1/driving/" +
 
 userLocation.lon +
@@ -705,11 +993,19 @@ destLon +
 "," +
 destLat +
 
-"?overview=full&geometries=geojson";
+"?alternatives=true" +
+
+"&overview=full" +
+
+"&steps=false" +
+
+"&geometries=geojson";
 
 
 const routeResponse =
-await fetch(routeURL);
+await fetch(
+osrmURL
+);
 
 
 if(!routeResponse.ok){
@@ -732,282 +1028,101 @@ routeData.routes.length === 0
 ){
 
 throw new Error(
-"No route found."
+"No road route found."
 );
 
 }
 
 
-const route =
-routeData.routes[0];
+/*
+OSRM can return one or more alternatives.
+We never invent roads.
+*/
+
+const routes =
+routeData.routes.slice(
+0,
+3
+);
 
 
-/* ========================================
-   REMOVE OLD ROUTE
-======================================== */
+/* =================================================
+   CLEAR OLD
+================================================= */
 
-if(routeLayer){
-
-map.removeLayer(routeLayer);
-
-}
+clearRoutes();
 
 
-/* ========================================
-   FLOOD CONDITION
-======================================== */
+/* =================================================
+   CREATE ROUTE DATA
+================================================= */
 
 const condition =
 flood.value;
 
 
-let risk = "LOW";
-
-let penalty = 0;
-
-let color = "#08a568";
+let routeObjects = [];
 
 
-if(condition === "normal"){
+routes.forEach(
+function(route,index){
 
-risk = "LOW";
-
-penalty = 0;
-
-color = "#08a568";
-
-}
-
-
-if(condition === "medium"){
-
-risk = "MEDIUM";
-
-penalty = 4;
-
-color = "#f39c12";
-
-}
-
-
-if(condition === "severe"){
-
-risk = "HIGH";
-
-penalty = 10;
-
-color = "#d64545";
-
-}
-
-
-/* ========================================
-   DRAW ROUTE
-======================================== */
-
-routeLayer =
-L.geoJSON(
-route.geometry,
-{
-style:{
-color:color,
-weight:8,
-opacity:.9
-}
-}
-).addTo(map);
-
-
-map.fitBounds(
-routeLayer.getBounds(),
-{
-padding:[30,30]
-}
-);
-
-
-/* ========================================
-   ROUTE ANALYSIS
-======================================== */
-
-const distanceKm =
+const distance =
 route.distance / 1000;
 
 
-/*
-The demonstration uses:
+const time =
+Math.round(
+route.duration / 60
+);
 
-Cost = Distance + Flood Penalty
+
+const floodInfo =
+getFloodRisk(
+index,
+condition
+);
+
+
+/*
+Cost combines road distance and
+simulated flood risk.
+
+Higher cost = less desirable.
 */
 
-const safeCost =
-distanceKm + penalty;
+const cost =
+distance +
+floodInfo.penalty;
 
 
-/*
-For demonstration purposes, the
-shortest route is the actual route
-returned by OSRM.
+routeObjects.push({
 
-The safety system then adds a
-flood penalty.
-*/
+route:route,
 
-const shortestCost =
-distanceKm;
+distance:distance,
 
+time:time,
 
-/* ========================================
-   UPDATE RESULTS
-======================================== */
+risk:floodInfo.name,
 
-document.getElementById(
-"results"
-).style.display = "block";
+penalty:floodInfo.penalty,
+
+cost:cost
+
+});
+
+});
 
 
-document.getElementById(
-"safeDistance"
-).innerText =
-distanceKm.toFixed(2) +
-" km";
+/* =================================================
+   FIND LOWEST COST
+================================================= */
+
+let safestIndex = 0;
 
 
-document.getElementById(
-"safeRisk"
-).innerText =
-risk;
-
-
-document.getElementById(
-"safePenalty"
-).innerText =
-"+" +
-penalty;
-
-
-document.getElementById(
-"safeCost"
-).innerText =
-safeCost.toFixed(2);
-
-
-document.getElementById(
-"shortDistance"
-).innerText =
-distanceKm.toFixed(2) +
-" km";
-
-
-document.getElementById(
-"shortRisk"
-).innerText =
-risk;
-
-
-document.getElementById(
-"shortPenalty"
-).innerText =
-"+" +
-penalty;
-
-
-document.getElementById(
-"shortCost"
-).innerText =
-shortestCost.toFixed(2);
-
-
-document.getElementById(
-"condition"
-).innerText =
-flood.options[
-flood.selectedIndex
-].text;
-
-
-document.getElementById(
-"dangerPenalty"
-).innerText =
-"+" +
-penalty;
-
-
-/* ========================================
-   DECISION
-======================================== */
-
-let decisionText;
-
-
-if(condition === "normal"){
-
-decisionText =
-"The shortest route is also the safest route because no flood penalty is applied.";
-
-document.getElementById(
-"decision"
-).innerText =
-"Shortest Route";
-
-}
-
-else{
-
-decisionText =
-"The system applies a flood-risk penalty to the route. In a full implementation, alternative road paths would be evaluated and the route with the lowest combined distance + flood-risk cost would be selected.";
-
-document.getElementById(
-"decision"
-).innerText =
-"Safety Analysis Applied";
-
-}
-
-
-document.getElementById(
-"decisionText"
-).innerText =
-decisionText;
-
-
-status.innerHTML =
-"<strong>🚑 Route calculated successfully.</strong><br>" +
-
-"Distance: " +
-distanceKm.toFixed(2) +
-" km<br>" +
-
-"Flood risk: " +
-risk +
-"<br>" +
-
-"Safety penalty: +" +
-penalty;
-
-
-}
-
-catch(error){
-
-console.error(error);
-
-status.innerHTML =
-"<strong>⚠️ Error</strong><br>" +
-error.message;
-
-}
-
-finally{
-
-routeButton.disabled = false;
-
-}
-
-}
-
-</script>
-
-</body>
-</html>
+for(
+let i=1;
+i<routeObjects.le
 ```
