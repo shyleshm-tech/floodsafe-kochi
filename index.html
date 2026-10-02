@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>FloodSafe Kochi</title>
+<title>FloodSafe Kochi - Safest Route</title>
 
 <link
 rel="stylesheet"
@@ -20,7 +20,7 @@ box-sizing:border-box;
 
 body{
 margin:0;
-font-family:Arial,sans-serif;
+font-family:Arial,Helvetica,sans-serif;
 background:#eef4f7;
 color:#17232d;
 }
@@ -41,7 +41,7 @@ margin:7px 0 0;
 }
 
 .container{
-max-width:1200px;
+max-width:1250px;
 margin:auto;
 padding:16px;
 }
@@ -96,6 +96,11 @@ button:hover{
 opacity:.9;
 }
 
+button:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
+
 #mapContainer{
 margin-top:16px;
 background:white;
@@ -119,30 +124,109 @@ border-radius:9px;
 line-height:1.5;
 }
 
-.cards{
+
+/* ROUTE CARDS */
+
+.routeResults{
 display:grid;
-grid-template-columns:repeat(4,1fr);
+grid-template-columns:repeat(3,1fr);
 gap:12px;
-margin-top:15px;
+margin-top:16px;
 }
 
-.card{
+.routeCard{
 background:white;
-padding:15px;
-border-radius:11px;
+padding:16px;
+border-radius:12px;
+box-shadow:0 2px 8px #0001;
+border-top:6px solid #777;
+}
+
+.routeCard.safe{
+border-top-color:#08a568;
+}
+
+.routeCard.medium{
+border-top-color:#f39c12;
+}
+
+.routeCard.danger{
+border-top-color:#d64545;
+}
+
+.routeName{
+font-size:18px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.routeRow{
+display:flex;
+justify-content:space-between;
+padding:6px 0;
+border-bottom:1px solid #edf0f2;
+font-size:14px;
+}
+
+.cost{
+font-size:24px;
+font-weight:bold;
+margin-top:10px;
+}
+
+.safeText{
+color:#07855b;
+font-weight:bold;
+}
+
+.mediumText{
+color:#d48600;
+font-weight:bold;
+}
+
+.dangerText{
+color:#d64545;
+font-weight:bold;
+}
+
+
+/* SUMMARY */
+
+.summary{
+margin-top:16px;
+background:white;
+padding:18px;
+border-radius:12px;
 box-shadow:0 2px 8px #0001;
 }
 
-.title{
+.summary h2{
+margin-top:0;
+color:#063b5c;
+}
+
+.summaryGrid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px;
+}
+
+.summaryBox{
+background:#f5f8fa;
+padding:14px;
+border-radius:9px;
+}
+
+.summaryTitle{
 font-size:11px;
 color:#71808a;
 font-weight:bold;
 }
 
-.value{
-font-size:19px;
+.summaryValue{
+font-size:18px;
 font-weight:bold;
-margin-top:6px;
+margin-top:5px;
 }
 
 .info{
@@ -154,13 +238,37 @@ border-radius:8px;
 line-height:1.5;
 }
 
-@media(max-width:800px){
+
+/* LEGEND */
+
+.legend{
+background:white;
+padding:10px;
+border-radius:8px;
+line-height:1.8;
+box-shadow:0 2px 8px #0003;
+}
+
+.legend span{
+display:inline-block;
+width:20px;
+height:5px;
+margin-right:6px;
+vertical-align:middle;
+}
+
+
+@media(max-width:850px){
 
 .controls{
 grid-template-columns:1fr;
 }
 
-.cards{
+.routeResults{
+grid-template-columns:1fr;
+}
+
+.summaryGrid{
 grid-template-columns:1fr 1fr;
 }
 
@@ -171,9 +279,11 @@ height:450px;
 }
 
 </style>
+
 </head>
 
 <body>
+
 
 <header>
 
@@ -189,12 +299,14 @@ Emergency Shortest & Safest Route Planning System
 <div class="container">
 
 
+<!-- CONTROLS -->
+
 <div class="controls">
 
 
 <div>
 
-<label>USER LOCATION</label>
+<label>USER START LOCATION</label>
 
 <button id="selectButton">
 
@@ -220,7 +332,7 @@ Click the button and then click the map.
 <input
 id="destination"
 value="Government Hospital, Ernakulam"
-placeholder="Enter destination">
+placeholder="Example: Government Hospital, Ernakulam">
 
 <button id="routeButton">
 
@@ -238,15 +350,15 @@ placeholder="Enter destination">
 <select id="flood">
 
 <option value="normal">
-Normal
+Normal Flood Condition
 </option>
 
 <option value="medium">
-Medium Flood
+Medium Flood Condition
 </option>
 
 <option value="severe">
-Severe Flood
+Severe Flood Condition
 </option>
 
 </select>
@@ -256,6 +368,8 @@ Severe Flood
 </div>
 
 
+<!-- MAP -->
+
 <div id="mapContainer">
 
 <div id="map"></div>
@@ -264,711 +378,160 @@ Severe Flood
 id="status"
 class="status">
 
-🗺️ Kochi map loaded.<br>
-Click <strong>Select Location on Map</strong>
-to choose the emergency user's starting point.
+🗺️ Select the user's starting location on the map.
 
 </div>
 
 </div>
 
 
-<div class="cards">
-
-
-<div class="card">
-
-<div class="title">
-DISTANCE
-</div>
+<!-- ROUTE RESULTS -->
 
 <div
-id="distance"
-class="value">
+id="routeResults"
+class="routeResults"
+style="display:none">
 
-—
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="title">
-TIME
-</div>
 
 <div
-id="time"
-class="value">
+id="routeCard1"
+class="routeCard safe">
 
-—
+<div class="routeName">
+🟢 Route A
+</div>
+
+<div class="routeRow">
+
+<span>Distance</span>
+
+<strong id="distance1">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Flood Risk</span>
+
+<strong id="risk1">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Risk Penalty</span>
+
+<strong id="penalty1">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Travel Time</span>
+
+<strong id="time1">—</strong>
+
+</div>
+
+<div class="cost">
+
+Cost: <span id="cost1">—</span>
 
 </div>
 
 </div>
 
-
-<div class="card">
-
-<div class="title">
-FLOOD RISK
-</div>
 
 <div
-id="risk"
-class="value">
+id="routeCard2"
+class="routeCard medium">
 
-—
+<div class="routeName">
+🟡 Route B
+</div>
+
+<div class="routeRow">
+
+<span>Distance</span>
+
+<strong id="distance2">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Flood Risk</span>
+
+<strong id="risk2">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Risk Penalty</span>
+
+<strong id="penalty2">—</strong>
+
+</div>
+
+<div class="routeRow">
+
+<span>Travel Time</span>
+
+<strong id="time2">—</strong>
+
+</div>
+
+<div class="cost">
+
+Cost: <span id="cost2">—</span>
 
 </div>
 
 </div>
 
-
-<div class="card">
-
-<div class="title">
-STATUS
-</div>
 
 <div
-id="routeStatus"
-class="value">
+id="routeCard3"
+class="routeCard danger">
 
-Waiting
+<div class="routeName">
+🔴 Route C
+</div>
+
+<div class="routeRow">
+
+<span>Distance</span>
+
+<strong id="distance3">—</strong>
 
 </div>
 
-</div>
+<div class="routeRow">
+
+<span>Flood Risk</span>
+
+<strong id="risk3">—</strong>
 
 </div>
 
+<div class="routeRow">
 
-<div class="info">
+<span>Risk Penalty</span>
 
-<strong>Project Demo</strong>
-
-<br><br>
-
-The user selects a starting point directly on the
-Kochi map. The system then calculates a road route
-to the emergency destination.
-
-Flood conditions are simulated to demonstrate the
-proposed shortest + safest emergency routing system.
+<strong id="penalty3">—</strong>
 
 </div>
 
+<div class="routeRow">
+
+<span>Travel Time</span>
+
+<strong id="time3">—</strong>
 
 </div>
 
+<div class="cost">
 
-<!-- Leaflet -->
-
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
-
-
-<script>
-
-/* ======================================
-   MAP
-====================================== */
-
-const map =
-L.map("map");
-
-
-/* OpenStreetMap */
-
-L.tileLayer(
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-maxZoom:19,
-
-attribution:
-"&copy; OpenStreetMap contributors"
-}
-).addTo(map);
-
-
-/*
-IMPORTANT:
-Set Kochi after map initialization.
-*/
-
-map.setView(
-[9.9312,76.2673],
-12
-);
-
-
-/* ======================================
-   VARIABLES
-====================================== */
-
-let userMarker=null;
-
-let destinationMarker=null;
-
-let routeLayer=null;
-
-let floodLayer=null;
-
-let selecting=false;
-
-let startLocation=null;
-
-
-/* ======================================
-   ELEMENTS
-====================================== */
-
-const selectButton =
-document.getElementById(
-"selectButton"
-);
-
-const locationText =
-document.getElementById(
-"locationText"
-);
-
-const destination =
-document.getElementById(
-"destination"
-);
-
-const routeButton =
-document.getElementById(
-"routeButton"
-);
-
-const flood =
-document.getElementById(
-"flood"
-);
-
-const status =
-document.getElementById(
-"status"
-);
-
-const distance =
-document.getElementById(
-"distance"
-);
-
-const time =
-document.getElementById(
-"time"
-);
-
-const risk =
-document.getElementById(
-"risk"
-);
-
-const routeStatus =
-document.getElementById(
-"routeStatus"
-);
-
-
-/* ======================================
-   SELECT LOCATION
-====================================== */
-
-selectButton.onclick =
-function(){
-
-selecting=true;
-
-selectButton.innerText =
-"👆 CLICK ON MAP";
-
-status.innerHTML =
-"<strong>📍 Select the user location.</strong><br>" +
-"Click anywhere on the Kochi map.";
-
-locationText.innerText =
-"Waiting for map click...";
-
-};
-
-
-/* ======================================
-   MAP CLICK
-====================================== */
-
-map.on(
-"click",
-function(e){
-
-if(!selecting){
-
-return;
-
-}
-
-
-const lat =
-e.latlng.lat;
-
-const lon =
-e.latlng.lng;
-
-
-startLocation={
-lat:lat,
-lon:lon
-};
-
-
-/* Remove old */
-
-if(userMarker){
-
-map.removeLayer(
-userMarker
-);
-
-}
-
-
-/* New marker */
-
-userMarker =
-L.marker(
-[lat,lon]
-)
-.addTo(map)
-.bindPopup(
-"<strong>📍 Emergency User</strong><br>" +
-
-"Latitude: " +
-lat.toFixed(5) +
-
-"<br>Longitude: " +
-lon.toFixed(5)
-)
-.openPopup();
-
-
-selecting=false;
-
-
-selectButton.innerText =
-"📍 CHANGE LOCATION";
-
-
-locationText.innerHTML =
-"✓ Location selected<br>" +
-
-"Lat: " +
-lat.toFixed(5) +
-
-"<br>Lon: " +
-lon.toFixed(5);
-
-
-status.innerHTML =
-"<strong>✓ Starting location selected.</strong><br>" +
-
-"Enter a destination and click " +
-
-"<strong>Find Safest Route</strong>.";
-
-});
-
-
-/* ======================================
-   ROUTE
-====================================== */
-
-routeButton.onclick =
-calculateRoute;
-
-
-async function calculateRoute(){
-
-if(!startLocation){
-
-alert(
-"Please select a starting location on the map."
-);
-
-return;
-
-}
-
-
-const place =
-destination.value.trim();
-
-
-if(!place){
-
-alert(
-"Please enter a destination."
-);
-
-return;
-
-}
-
-
-routeButton.disabled=true;
-
-
-status.innerText =
-"🔎 Searching for destination...";
-
-
-try{
-
-
-/* ====================================
-   NOMINATIM
-==================================== */
-
-const geoURL =
-"https://nominatim.openstreetmap.org/search" +
-
-"?format=json" +
-
-"&limit=1" +
-
-"&q=" +
-
-encodeURIComponent(
-place +
-", Kochi, Kerala, India"
-);
-
-
-const geoResponse =
-await fetch(
-geoURL
-);
-
-
-if(!geoResponse.ok){
-
-throw new Error(
-"Destination search failed."
-);
-
-}
-
-
-const geoData =
-await geoResponse.json();
-
-
-if(
-geoData.length===0
-){
-
-throw new Error(
-"Destination not found."
-);
-
-}
-
-
-const destLat =
-parseFloat(
-geoData[0].lat
-);
-
-const destLon =
-parseFloat(
-geoData[0].lon
-);
-
-
-/* ====================================
-   DESTINATION MARKER
-==================================== */
-
-if(destinationMarker){
-
-map.removeLayer(
-destinationMarker
-);
-
-}
-
-
-destinationMarker =
-L.marker(
-[
-destLat,
-destLon
-]
-)
-.addTo(map)
-.bindPopup(
-"<strong>🏥 Destination</strong><br>"+
-place
-)
-.openPopup();
-
-
-/* ====================================
-   OSRM
-==================================== */
-
-status.innerText =
-"🚑 Calculating road route...";
-
-
-const osrmURL =
-
-"https://router.project-osrm.org/route/v1/driving/" +
-
-startLocation.lon +
-"," +
-startLocation.lat +
-
-";" +
-
-destLon +
-"," +
-destLat +
-
-"?overview=full&geometries=geojson";
-
-
-const routeResponse =
-await fetch(
-osrmURL
-);
-
-
-if(!routeResponse.ok){
-
-throw new Error(
-"Routing service unavailable."
-);
-
-}
-
-
-const data =
-await routeResponse.json();
-
-
-if(
-data.code!=="Ok" ||
-!data.routes ||
-data.routes.length===0
-){
-
-throw new Error(
-"No route available."
-);
-
-}
-
-
-const route =
-data.routes[0];
-
-
-/* ====================================
-   REMOVE OLD ROUTE
-==================================== */
-
-if(routeLayer){
-
-map.removeLayer(
-routeLayer
-);
-
-}
-
-if(floodLayer){
-
-map.removeLayer(
-floodLayer
-);
-
-}
-
-
-/* ====================================
-   FLOOD SETTINGS
-==================================== */
-
-let lineColor =
-"#08a568";
-
-let floodRisk =
-"LOW";
-
-let message =
-"Normal conditions. Route calculated.";
-
-
-if(flood.value==="medium"){
-
-lineColor =
-"#f39c12";
-
-floodRisk =
-"MEDIUM";
-
-message =
-"Medium flood condition simulated.";
-
-}
-
-
-if(flood.value==="severe"){
-
-lineColor =
-"#d64545";
-
-floodRisk =
-"HIGH";
-
-message =
-"Severe flood condition simulated.";
-
-}
-
-
-/* ====================================
-   DRAW ROUTE
-==================================== */
-
-routeLayer =
-L.geoJSON(
-route.geometry,
-{
-style:{
-color:lineColor,
-weight:8,
-opacity:.9
-}
-}
-).addTo(map);
-
-
-/* ====================================
-   FLOOD ZONE
-==================================== */
-
-if(flood.value!=="normal"){
-
-floodLayer =
-L.layerGroup()
-.addTo(map);
-
-
-L.circle(
-[
-destLat,
-destLon
-],
-{
-radius:
-flood.value==="severe"
-?700
-:450,
-
-color:"#1769aa",
-
-fillColor:"#38a9d0",
-
-fillOpacity:.22
-}
-)
-.bindPopup(
-"🌊 Simulated Flood Zone"
-)
-.addTo(
-floodLayer
-);
-
-}
-
-
-/* ====================================
-   ZOOM
-==================================== */
-
-map.fitBounds(
-routeLayer.getBounds(),
-{
-padding:[30,30]
-}
-);
-
-
-/* ====================================
-   RESULTS
-==================================== */
-
-distance.innerText =
-(
-route.distance/1000
-).toFixed(2)
-+
-" km";
-
-
-time.innerText =
-Math.round(
-route.duration/60
-)
-+
-" min";
-
-
-risk.innerText =
-floodRisk;
-
-
-routeStatus.innerText =
-"✓ Found";
-
-
-status.innerHTML =
-"<strong>🚑 Route calculated!</strong><br>"+
-message;
-
-
-}
-
-catch(error){
-
-console.error(error);
-
-status.innerHTML =
-"<strong>⚠️ Error</strong><br>"+
-error.message;
-
-routeStatus.innerText =
-"Error";
-
-}
-
-finally{
-
-routeButton.disabled=false;
-
-}
-
-}
-
-</script>
-
-</body>
-</html>
+Cost: <span
 ```
