@@ -1,0 +1,889 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FloodSafe Kochi</title>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#eef4f7;
+color:#17232d;
+}
+
+header{
+background:linear-gradient(135deg,#063b5c,#087f8c);
+color:white;
+padding:22px;
+}
+
+header h1{
+margin:0;
+font-size:28px;
+}
+
+header p{
+margin:7px 0 0;
+opacity:.9;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:16px;
+}
+
+.controls{
+background:white;
+padding:18px;
+border-radius:15px;
+box-shadow:0 3px 12px #0002;
+display:grid;
+grid-template-columns:1fr 1.5fr 1fr;
+gap:14px;
+}
+
+label{
+display:block;
+font-size:12px;
+font-weight:bold;
+margin-bottom:7px;
+color:#52616b;
+}
+
+input,
+select,
+button{
+width:100%;
+padding:12px;
+border:1px solid #ccd6dc;
+border-radius:9px;
+font-size:15px;
+}
+
+button{
+border:0;
+background:#07855b;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#056c4a;
+}
+
+.locationButton{
+background:#1769aa;
+margin-top:8px;
+}
+
+.routeButton{
+margin-top:8px;
+}
+
+.mapBox{
+margin-top:17px;
+background:white;
+padding:10px;
+border-radius:15px;
+box-shadow:0 3px 12px #0002;
+}
+
+#map{
+height:560px;
+width:100%;
+border-radius:10px;
+}
+
+.status{
+margin-top:12px;
+padding:15px;
+background:#063b5c;
+color:white;
+border-radius:10px;
+line-height:1.5;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px;
+margin-top:16px;
+}
+
+.card{
+background:white;
+padding:16px;
+border-radius:12px;
+box-shadow:0 2px 8px #0001;
+}
+
+.cardTitle{
+font-size:11px;
+color:#71808a;
+font-weight:bold;
+}
+
+.cardValue{
+font-size:19px;
+font-weight:bold;
+margin-top:6px;
+}
+
+.info{
+margin-top:16px;
+background:white;
+padding:16px;
+border-left:5px solid #087f8c;
+border-radius:9px;
+line-height:1.5;
+}
+
+@media(max-width:800px){
+
+.controls{
+grid-template-columns:1fr;
+}
+
+.cards{
+grid-template-columns:1fr 1fr;
+}
+
+#map{
+height:450px;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>🌊 FloodSafe Kochi</h1>
+
+<p>
+Emergency Shortest & Safest Route Planning System
+</p>
+
+</header>
+
+
+<div class="container">
+
+
+<div class="controls">
+
+
+<div>
+
+<label>YOUR LOCATION</label>
+
+<button
+id="locationButton"
+class="locationButton">
+
+📍 Use My Current Location
+
+</button>
+
+<div
+id="locationStatus"
+style="font-size:12px;margin-top:7px;color:#687680">
+
+Location not detected yet.
+
+</div>
+
+</div>
+
+
+<div>
+
+<label>DESTINATION</label>
+
+<input
+id="destination"
+value="Government Hospital, Ernakulam"
+placeholder="Example: Government Hospital, Ernakulam">
+
+<button
+id="routeButton"
+class="routeButton">
+
+🚑 FIND SAFEST ROUTE
+
+</button>
+
+</div>
+
+
+<div>
+
+<label>FLOOD CONDITION</label>
+
+<select id="floodLevel">
+
+<option value="normal">
+Normal
+</option>
+
+<option value="medium">
+Medium Flood
+</option>
+
+<option value="severe">
+Severe Flood
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="mapBox">
+
+<div id="map"></div>
+
+<div
+class="status"
+id="status">
+
+Press
+<strong>Use My Current Location</strong>
+to locate yourself on the map.
+
+</div>
+
+</div>
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<div class="cardTitle">
+DISTANCE
+</div>
+
+<div
+class="cardValue"
+id="distance">
+
+—
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="cardTitle">
+ESTIMATED TIME
+</div>
+
+<div
+class="cardValue"
+id="time">
+
+—
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="cardTitle">
+FLOOD RISK
+</div>
+
+<div
+class="cardValue"
+id="risk">
+
+—
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="cardTitle">
+STATUS
+</div>
+
+<div
+class="cardValue"
+id="routeStatus">
+
+Waiting
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<div class="info">
+
+<strong>Project demonstration:</strong>
+
+This prototype uses OpenStreetMap for mapping,
+browser GPS for the user's current location,
+and an OpenStreetMap-based routing service.
+
+Flood conditions are simulated for demonstrating
+the proposed shortest + safest emergency routing
+algorithm.
+
+</div>
+
+
+</div>
+
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script>
+
+/* ============================
+   INITIALIZE MAP
+============================ */
+
+const map =
+L.map("map").setView(
+[9.9312,76.2673],
+12
+);
+
+
+/* OpenStreetMap */
+
+L.tileLayer(
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+
+attribution:
+'&copy; OpenStreetMap contributors'
+}
+).addTo(map);
+
+
+/* ============================
+   VARIABLES
+============================ */
+
+let userMarker=null;
+
+let destinationMarker=null;
+
+let routeLayer=null;
+
+let floodLayer=null;
+
+let userLocation=null;
+
+
+/* ============================
+   ELEMENTS
+============================ */
+
+const locationButton=
+document.getElementById(
+"locationButton"
+);
+
+const locationStatus=
+document.getElementById(
+"locationStatus"
+);
+
+const routeButton=
+document.getElementById(
+"routeButton"
+);
+
+const destinationInput=
+document.getElementById(
+"destination"
+);
+
+const floodLevel=
+document.getElementById(
+"floodLevel"
+);
+
+const statusBox=
+document.getElementById(
+"status"
+);
+
+const distanceBox=
+document.getElementById(
+"distance"
+);
+
+const timeBox=
+document.getElementById(
+"time"
+);
+
+const riskBox=
+document.getElementById(
+"risk"
+);
+
+const routeStatus=
+document.getElementById(
+"routeStatus"
+);
+
+
+/* ============================
+   GET CURRENT LOCATION
+============================ */
+
+locationButton.onclick=
+function(){
+
+if(!navigator.geolocation){
+
+locationStatus.innerText=
+"GPS is not supported.";
+
+return;
+
+}
+
+
+locationStatus.innerText=
+"Getting your location...";
+
+
+navigator.geolocation.getCurrentPosition(
+
+function(position){
+
+const lat=
+position.coords.latitude;
+
+const lon=
+position.coords.longitude;
+
+
+userLocation={
+lat:lat,
+lon:lon
+};
+
+
+/* Remove old marker */
+
+if(userMarker){
+
+map.removeLayer(
+userMarker
+);
+
+}
+
+
+/* Add user marker */
+
+userMarker=
+L.marker(
+[lat,lon]
+)
+.addTo(map)
+.bindPopup(
+"<b>📍 Your Current Location</b>"
+)
+.openPopup();
+
+
+map.setView(
+[lat,lon],
+14
+);
+
+
+locationStatus.innerText=
+"✓ Current location detected";
+
+
+statusBox.innerHTML=
+"<strong>Location found!</strong><br>" +
+"Now enter your destination and press " +
+"<strong>Find Safest Route</strong>.";
+
+},
+
+function(error){
+
+if(error.code===1){
+
+locationStatus.innerText=
+"Location permission denied.";
+
+}
+
+else if(error.code===2){
+
+locationStatus.innerText=
+"Location unavailable.";
+
+}
+
+else if(error.code===3){
+
+locationStatus.innerText=
+"Location request timed out.";
+
+}
+
+else{
+
+locationStatus.innerText=
+"Could not get location.";
+
+}
+
+},
+
+{
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:30000
+}
+
+);
+
+};
+
+
+/* ============================
+   FIND ROUTE
+============================ */
+
+routeButton.onclick=
+findRoute;
+
+
+async function findRoute(){
+
+if(!userLocation){
+
+alert(
+"First click 'Use My Current Location'."
+);
+
+return;
+
+}
+
+
+const destination=
+destinationInput.value.trim();
+
+
+if(!destination){
+
+alert(
+"Please enter a destination."
+);
+
+return;
+
+}
+
+
+routeButton.disabled=true;
+
+statusBox.innerText=
+"Searching for destination...";
+
+
+try{
+
+
+/* ============================
+   GEOCODING
+============================ */
+
+const searchURL=
+"https://nominatim.openstreetmap.org/search" +
+
+"?format=json" +
+
+"&limit=1" +
+
+"&q="+
+
+encodeURIComponent(
+destination+
+", Kochi, Kerala, India"
+);
+
+
+const searchResponse=
+await fetch(
+searchURL
+);
+
+
+if(!searchResponse.ok){
+
+throw new Error(
+"Destination search failed."
+);
+
+}
+
+
+const searchResults=
+await searchResponse.json();
+
+
+if(
+!searchResults ||
+searchResults.length===0
+){
+
+throw new Error(
+"Destination not found."
+);
+
+}
+
+
+const destinationLat=
+parseFloat(
+searchResults[0].lat
+);
+
+const destinationLon=
+parseFloat(
+searchResults[0].lon
+);
+
+
+/* ============================
+   DESTINATION MARKER
+============================ */
+
+if(destinationMarker){
+
+map.removeLayer(
+destinationMarker
+);
+
+}
+
+
+destinationMarker=
+L.marker(
+[
+destinationLat,
+destinationLon
+]
+)
+.addTo(map)
+.bindPopup(
+"<b>🏥 Destination</b><br>"+
+destination
+)
+.openPopup();
+
+
+/* ============================
+   ROUTING
+============================ */
+
+statusBox.innerText=
+"Calculating road route...";
+
+
+const routeURL=
+"https://router.project-osrm.org/route/v1/driving/"+
+userLocation.lon+
+","+
+userLocation.lat+
+";"+
+destinationLon+
+","+
+destinationLat+
+"?overview=full&geometries=geojson";
+
+
+const routeResponse=
+await fetch(
+routeURL
+);
+
+
+if(!routeResponse.ok){
+
+throw new Error(
+"Routing service unavailable."
+);
+
+}
+
+
+const routeData=
+await routeResponse.json();
+
+
+if(
+routeData.code!=="Ok" ||
+!routeData.routes ||
+routeData.routes.length===0
+){
+
+throw new Error(
+"No route was found."
+);
+
+}
+
+
+const route=
+routeData.routes[0];
+
+
+/* ============================
+   REMOVE OLD ROUTE
+============================ */
+
+if(routeLayer){
+
+map.removeLayer(
+routeLayer
+);
+
+}
+
+
+if(floodLayer){
+
+map.removeLayer(
+floodLayer
+);
+
+}
+
+
+/* ============================
+   FLOOD SIMULATION
+============================ */
+
+const condition=
+floodLevel.value;
+
+
+let color=
+"#08a568";
+
+let risk=
+"LOW";
+
+let message=
+"Normal conditions. Shortest road route selected.";
+
+
+if(condition==="medium"){
+
+color=
+"#f39c12";
+
+risk=
+"MEDIUM";
+
+message=
+"Medium flood condition simulated. The system applies additional safety cost to affected areas.";
+
+}
+
+
+if(condition==="severe"){
+
+color=
+"#d64545";
+
+risk=
+"HIGH";
+
+message=
+"Severe flood condition simulated. High-risk areas should be avoided.";
+
+}
+
+
+/* ============================
+   DRAW ROUTE
+============================ */
+
+routeLayer=
+L.geoJSON(
+route.geometry,
+{
+style:{
+color:color,
+weight:8,
+opacity:.9
+}
+}
+).addTo(map);
+
+
+/* ============================
+   FLOOD ZONE
+============================ */
+
+if(condition!=="normal"){
+
+floodLayer=
+L.layerGroup()
+.addTo(map);
+
+
+const radius=
+condition==="severe"
+?700
+:450;
+
+
+L.circle(
+[
+destinationLat,
+destination
+```
